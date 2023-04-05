@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphs</title>
+</head>
+<body>
+
+    <div style="display: flex; justify-content: space-between;">
+        <div>
+            <h3>Original Graph</h3>
+            {% if graph_before_data %}
+            <img src="data:image/png;base64,{{ graph_before_data }}" alt="Graph Before">
+            {% endif %}
+        </div>
+
+        <div>
+            <h3>Updated Graph</h3>
+            {% if graph_after_data %}
+            <img src="data:image/png;base64,{{ graph_after_data }}" alt="Graph After">
+            {% endif %}
+        </div>
+    </div>
+
+    <form action="/" method="POST">
+        <div class="form-group">
+            <label for="selected_edges">Select Edges to Add:</label>
+            <select multiple class="form-control" id="selected_edges" name="selected_edges" size="{{ output_edges.shape[0] }}">
+                {% for edge in output_edges %}
+                <option>{{ edge[0] }},{{ edge[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Graph</button>
+    </form>
+
+</body>
+</html>
