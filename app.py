@@ -1,41 +1,57 @@
-import numpy as np
-from flask import Flask, render_template, request, redirect, url_for
-from networkx import from_edgelist, draw_networkx 
-import matplotlib
-matplotlib.use('Agg')  # Add this line before importing pyplot
-import matplotlib.pyplot as plt
 import base64
+import numpy as np
 from io import BytesIO
-
+from flask import Flask, render_template, request
+from networkx import from_edgelist, draw_networkx
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import networkx as nx
 app = Flask(__name__)
- 
-def plot_graph(edges):
-    G = from_edgelist(edges)
-    plt.figure()
-    # Replace the draw function with draw_networkx
-    draw_networkx(G, with_labels=True, node_color='skyblue', node_size=1500, edge_color='black', linewidths=1, font_weight='bold')
-    img = BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    return base64.b64encode(img.getvalue()).decode('utf-8')
+
+def plot_graph(edges, new_edges=None):
+    G = nx.from_edgelist(edges)
+
+    fig = Figure()
+    canvas = FigureCanvas(fig)
+    ax = fig.add_subplot(1, 1, 1)
+
+    pos = nx.spring_layout(G)
+
+    # Draw the original graph
+    nx.draw(G, pos, with_labels=True, node_color='skyblue', node_size=1500, edge_color='black', linewidths=1, font_weight='bold', ax=ax)
+
+    # Draw new_edges if provided, with red color
+    if new_edges is not None:
+        G.add_edges_from(new_edges)
+        red_edges = [(u, v) for (u, v) in G.edges() if (u, v) in new_edges]
+        nx.draw_networkx_edges(G, pos, edgelist=red_edges, edge_color='red', width=1, ax=ax)
+
+    # Save the figure to a BytesIO object
+    buf = BytesIO()
+    canvas.print_png(buf)
+    buf.seek(0)
+    img_str = base64.b64encode(buf.getvalue()).decode('utf-8')
+    buf.close()
+
+    return img_str
+
+
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     graph_before_data = np.load('static/graph.npy')
     output_edges = np.load('static/output.npy')
+    graph_before = plot_graph(graph_before_data)
+    graph_after = None
 
     if request.method == 'POST':
         selected_edges = request.form.getlist('selected_edges')
-        selected_edges = [tuple(map(int, edge.split(','))) for edge in selected_edges]
-        graph_after_data = np.concatenate((graph_before_data, selected_edges), axis=0)
-    else:
-        graph_after_data = None
-
-    graph_before = plot_graph(graph_before_data)
-    graph_after = plot_graph(graph_after_data) if graph_after_data is not None else None
+        new_edges = [tuple(map(int, edge.split(','))) for edge in selected_edges]
+        graph_after = plot_graph(graph_before_data, new_edges=new_edges)
 
     return render_template("index.html", graph_before_data=graph_before, graph_after_data=graph_after, output_edges=output_edges)
 
-if __name__ == "__main__":
-    app.run(port=3336, debug=True)
+if __name__ == '__main__':
+    app.run(port=4444,debug=True)
