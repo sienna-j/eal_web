@@ -76,14 +76,20 @@
                     return item[0] === edge[0] && item[1] === edge[1];
                 });
     
-                edges.add({ from: edge[0], to: edge[1], color: isAfterData ? { color: '#ff383f' } : { color: '#0000FF' } });
+                edges.add({
+                    from: edge[0],
+                    to: edge[1],
+                    color: isAfterData ? { color: 'red' } : { color: 'gray' },
+                    label: isAfterData ? "is same as" : undefined,
+                    font: { align: "middle" }
+                });
             });
     
             var data = {
                 nodes: nodes,
                 edges: edges
             };
-    
+                   
             var options = {
                 nodes: {
                     shape: 'circle',
@@ -109,14 +115,10 @@
         }
     
         var containerBefore = document.getElementById('graph-before');
-    createGraph(containerBefore, graph_before_data, [], fixed_positions);
+        createGraph(containerBefore, graph_before_data, [], fixed_positions);
 
-    var containerAfter = document.getElementById('graph-after');
-    createGraph(containerAfter, graph_before_data, new_edges, fixed_positions);
-</script>
-    
-    
-    
-
+        var containerAfter = document.getElementById('graph-after');
+        createGraph(containerAfter, graph_before_data, new_edges, fixed_positions);
+    </script>
 </body>
 </html>
