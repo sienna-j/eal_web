@@ -17,4 +17,4 @@ def index():
     return render_template("index.html", graph_before_data=graph_before_data.tolist(), output_edges=output_edges.tolist(), new_edges=[])
 
 if __name__ == '__main__':
-    app.run(port=4449, debug=True)
+    app.run(port=44499, debug=True)

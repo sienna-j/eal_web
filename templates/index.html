@@ -51,65 +51,89 @@
         var graph_before_data = {{ graph_before_data|tojson }};
         var output_edges = {{ output_edges|tojson }};
         var new_edges = {{ new_edges|tojson }};
-
-        function createGraph(container, beforeData, afterData) {
-    var nodes = new vis.DataSet([]);
-    var edges = new vis.DataSet([]);
-
-    var allData = beforeData.concat(afterData);
-
-    allData.forEach(function(edge) {
-        if (!nodes.get(edge[0])) {
-            nodes.add({id: edge[0], label: String(edge[0])});
+    
+        function generateFixedPositions(data) {
+            var fixedPositions = {};
+    
+            data.forEach(function (edge) {
+                [edge[0], edge[1]].forEach(function (node) {
+                    if (!fixedPositions.hasOwnProperty(node)) {
+                        fixedPositions[node] = {
+                            x: Math.random() * 400 - 200,
+                            y: Math.random() * 400 - 200
+                        };
+                    }
+                });
+            });
+    
+            return fixedPositions;
         }
-        if (!nodes.get(edge[1])) {
-            nodes.add({id: edge[1], label: String(edge[1])});
+    
+        function createGraph(container, beforeData, afterData, fixedPositions) {
+            var nodes = new vis.DataSet([]);
+            var edges = new vis.DataSet([]);
+    
+            var allData = beforeData.concat(afterData);
+    
+            allData.forEach(function (edge) {
+                [edge[0], edge[1]].forEach(function (node) {
+                    if (!nodes.get(node)) {
+                        nodes.add({
+                            id: node,
+                            label: String(node),
+                            x: fixedPositions[node].x,
+                            y: fixedPositions[node].y,
+                            fixed: { x: true, y: true }
+                        });
+                    }
+                });
+    
+                var isAfterData = afterData.some(function (item) {
+                    return item[0] === edge[0] && item[1] === edge[1];
+                });
+    
+                edges.add({ from: edge[0], to: edge[1], color: isAfterData ? { color: '#ff383f' } : { color: '#0000FF' } });
+            });
+    
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+    
+            var options = {
+                nodes: {
+                    shape: 'circle',
+                    size: 20,
+                    font: {
+                        size: 16,
+                        bold: true
+                    }
+                },
+                edges: {
+                    width: 1
+                },
+                physics: {
+                    enabled: false
+                },
+                interaction: {
+                    hover: true,
+                    zoomView: true
+                }
+            };
+    
+            var network = new vis.Network(container, data, options);
         }
-
-        var isAfterData = afterData.some(function(item) {
-            return item[0] === edge[0] && item[1] === edge[1];
-        });
-
-        edges.add({from: edge[0], to: edge[1], color: isAfterData ? {color:'#ff383f'} : {color:'#0000FF'}});
-    });
-
-    var data = {
-        nodes: nodes,
-        edges: edges
-    };
-
-    var options = {
-        nodes: {
-            shape: 'circle',
-            size: 20,
-            font: {
-                size: 16,
-                bold: true
-            }
-        },
-        edges: {
-            width: 1
-        },
-        physics: {
-            enabled: true
-        },
-        interaction: {
-            hover: true,
-            zoomView: true
-        }
-    };
-
-    var network = new vis.Network(container, data, options);
-}
-
+    
+        var fixedPositions = generateFixedPositions(graph_before_data.concat(new_edges));
+    
         var containerBefore = document.getElementById('graph-before');
-        createGraph(containerBefore, graph_before_data, []);
-
+        createGraph(containerBefore, graph_before_data, [], fixedPositions);
+    
         var containerAfter = document.getElementById('graph-after');
-        createGraph(containerAfter, graph_before_data, new_edges);
+        createGraph(containerAfter, graph_before_data, new_edges, fixedPositions);
     </script>
+    
+    
 
 </body>
 </html>
-
-           
