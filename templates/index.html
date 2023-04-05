@@ -7,37 +7,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css">
     <style>
+        #content {
+            display: flex;
+            justify-content: space-between;
+        }
         #visualization-container {
             display: flex;
             justify-content: space-around;
+            flex-grow: 1;
         }
         .graph-container {
             width: 45%;
             height: 500px;
             border: 1px solid lightgray;
         }
-
     </style>
 </head>
 <body>
 
     <h1>Entity Alignment - Before and After</h1>
 
-    <form method="POST">
-        <label for="selected_edges">Select edges to apply:</label>
-        <br>
-        <select name="selected_edges" id="selected_edges" multiple size="10" style="width: 300px;">
-            {% for edge in output_edges %}
-                <option value="{{ edge|join(',') }}">{{ edge|join(' - ') }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <button type="submit">Apply</button>
-    </form>
-
-    <div id="visualization-container">
-        <div id="graph-before" class="graph-container"></div>
-        <div id="graph-after" class="graph-container"></div>
+    <div id="content">
+        <div>
+            <form method="POST">
+                <label for="selected_edges">Select edges to apply:</label>
+                <br>
+                <select name="selected_edges" id="selected_edges" multiple size="10" style="width: 300px;">
+                    {% for edge in output_edges %}
+                        <option value="{{ edge|join(',') }}">{{ edge|join(' - ') }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <button type="submit">Apply</button>
+            </form>
+        </div>
+        <div id="visualization-container">
+            <div id="graph-before" class="graph-container"></div>
+            <div id="graph-after" class="graph-container"></div>
+        </div>
     </div>
 
     <script>
@@ -46,59 +53,54 @@
         var new_edges = {{ new_edges|tojson }};
 
         function createGraph(container, beforeData, afterData) {
-            var nodes = new vis.DataSet([]);
-            var edges = new vis.DataSet([]);
+    var nodes = new vis.DataSet([]);
+    var edges = new vis.DataSet([]);
 
-            beforeData.forEach(function(edge) {
-                if (!nodes.get(edge[0])) {
-                    nodes.add({id: edge[0], label: String(edge[0])});
-                }
-                if (!nodes.get(edge[1])) {
-                    nodes.add({id: edge[1], label: String(edge[1])});
-                }
+    var allData = beforeData.concat(afterData);
 
-                edges.add({from: edge[0], to: edge[1], color: 'blue'});
-            });
-
-            afterData.forEach(function(edge) {
-                if (!nodes.get(edge[0])) {
-                    nodes.add({id: edge[0], label: String(edge[0])});
-                }
-                if (!nodes.get(edge[1])) {
-                    nodes.add({id: edge[1], label: String(edge[1])});
-                }
-
-                edges.add({from: edge[0], to: edge[1], color: 'red'});
-            });
-
-            var data = {
-                nodes: nodes,
-                edges: edges
-            };
-
-            var options = {
-                nodes: {
-                    shape: 'circle',
-                    size: 20,
-                    font: {
-                        size: 16,
-                        bold: true
-                    }
-                },
-                edges: {
-                    width: 1
-                },
-                physics: {
-                    enabled: true
-                },
-                interaction: {
-                    hover: true
-                }
-            };
-
-            var network = new vis.Network(container, data, options);
+    allData.forEach(function(edge) {
+        if (!nodes.get(edge[0])) {
+            nodes.add({id: edge[0], label: String(edge[0])});
+        }
+        if (!nodes.get(edge[1])) {
+            nodes.add({id: edge[1], label: String(edge[1])});
         }
 
+        var isAfterData = afterData.some(function(item) {
+            return item[0] === edge[0] && item[1] === edge[1];
+        });
+
+        edges.add({from: edge[0], to: edge[1], color: isAfterData ? {color:'#ff383f'} : {color:'#0000FF'}});
+    });
+
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+
+    var options = {
+        nodes: {
+            shape: 'circle',
+            size: 20,
+            font: {
+                size: 16,
+                bold: true
+            }
+        },
+        edges: {
+            width: 1
+        },
+        physics: {
+            enabled: true
+        },
+        interaction: {
+            hover: true,
+            zoomView: true
+        }
+    };
+
+    var network = new vis.Network(container, data, options);
+}
 
         var containerBefore = document.getElementById('graph-before');
         createGraph(containerBefore, graph_before_data, []);
@@ -109,3 +111,5 @@
 
 </body>
 </html>
+
+           
