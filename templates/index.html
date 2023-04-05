@@ -1,48 +1,111 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5Auj9/fontawesome.1c2C40Xmxz+cXiYA2r7g8/8WUJv6/2M6b7gg6/z7N6pHAJ+aLrXQNpvInvariantCB/p3ZwJ+wGpRMH3Jw1TLE5auN8rcX+rR/4Zpuppies+pyramid+j2d2dujdk7M0jKZu7DyBpE=" crossorigin="anonymous">
-    <title>Graph Visualization</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Graph</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css">
+    <style>
+        #visualization-container {
+            display: flex;
+            justify-content: space-around;
+        }
+        .graph-container {
+            width: 45%;
+            height: 500px;
+            border: 1px solid lightgray;
+        }
+
+    </style>
 </head>
 <body>
-<div class="container">
-    <div class="row">
-        <div class="col-md-4">
-            <form method="post">
-                <div class="form-group">
-                    <label for="selected_edges">Select edges to add</label>
-                    <select multiple class="form-control" id="selected_edges" name="selected_edges">
-                        {% for edge in output_edges %}
-                        <option>{{ edge[0] }},{{ edge[1] }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
-    </div>
-    <div class="col-md-8">
-        <div class="row">
-            <div class="col-md-6">
-                <h3>Original Graph</h3>
-                {% if graph_before_data %}
-                    <img src="data:image/png;base64,{{ graph_before_data }}" alt="Original Graph" class="img-fluid">
-                {% endif %}
-            </div>
-            <div class="col-md-6">
-                <h3>Graph with New Edges</h3>
-                {% if graph_after_data %}
-                    <img src="data:image/png;base64,{{ graph_after_data }}" alt="Graph with New Edges" class="img-fluid">
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-eMNCOe7tC1doHpGoJtKh7z7lGz7fuP4F8nfdFvAOA6Gg/z6Y5J6XqqyGXYM2ntX5" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script>
+    <h1>Entity Alignment - Before and After</h1>
+
+    <form method="POST">
+        <label for="selected_edges">Select edges to apply:</label>
+        <br>
+        <select name="selected_edges" id="selected_edges" multiple size="10" style="width: 300px;">
+            {% for edge in output_edges %}
+                <option value="{{ edge|join(',') }}">{{ edge|join(' - ') }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button type="submit">Apply</button>
+    </form>
+
+    <div id="visualization-container">
+        <div id="graph-before" class="graph-container"></div>
+        <div id="graph-after" class="graph-container"></div>
+    </div>
+
+    <script>
+        var graph_before_data = {{ graph_before_data|tojson }};
+        var output_edges = {{ output_edges|tojson }};
+        var new_edges = {{ new_edges|tojson }};
+
+        function createGraph(container, beforeData, afterData) {
+            var nodes = new vis.DataSet([]);
+            var edges = new vis.DataSet([]);
+
+            beforeData.forEach(function(edge) {
+                if (!nodes.get(edge[0])) {
+                    nodes.add({id: edge[0], label: String(edge[0])});
+                }
+                if (!nodes.get(edge[1])) {
+                    nodes.add({id: edge[1], label: String(edge[1])});
+                }
+
+                edges.add({from: edge[0], to: edge[1], color: 'blue'});
+            });
+
+            afterData.forEach(function(edge) {
+                if (!nodes.get(edge[0])) {
+                    nodes.add({id: edge[0], label: String(edge[0])});
+                }
+                if (!nodes.get(edge[1])) {
+                    nodes.add({id: edge[1], label: String(edge[1])});
+                }
+
+                edges.add({from: edge[0], to: edge[1], color: 'red'});
+            });
+
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+
+            var options = {
+                nodes: {
+                    shape: 'circle',
+                    size: 20,
+                    font: {
+                        size: 16,
+                        bold: true
+                    }
+                },
+                edges: {
+                    width: 1
+                },
+                physics: {
+                    enabled: true
+                },
+                interaction: {
+                    hover: true
+                }
+            };
+
+            var network = new vis.Network(container, data, options);
+        }
+
+
+        var containerBefore = document.getElementById('graph-before');
+        createGraph(containerBefore, graph_before_data, []);
+
+        var containerAfter = document.getElementById('graph-after');
+        createGraph(containerAfter, graph_before_data, new_edges);
+    </script>
+
 </body>
 </html>
