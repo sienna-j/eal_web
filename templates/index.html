@@ -51,23 +51,7 @@
         var graph_before_data = {{ graph_before_data|tojson }};
         var output_edges = {{ output_edges|tojson }};
         var new_edges = {{ new_edges|tojson }};
-    
-        function generateFixedPositions(data) {
-            var fixedPositions = {};
-    
-            data.forEach(function (edge) {
-                [edge[0], edge[1]].forEach(function (node) {
-                    if (!fixedPositions.hasOwnProperty(node)) {
-                        fixedPositions[node] = {
-                            x: Math.random() * 400 - 200,
-                            y: Math.random() * 400 - 200
-                        };
-                    }
-                });
-            });
-    
-            return fixedPositions;
-        }
+        var fixed_positions = {{ fixed_positions|tojson }};
     
         function createGraph(container, beforeData, afterData, fixedPositions) {
             var nodes = new vis.DataSet([]);
@@ -81,8 +65,8 @@
                         nodes.add({
                             id: node,
                             label: String(node),
-                            x: fixedPositions[node].x,
-                            y: fixedPositions[node].y,
+                            x: fixedPositions[node][0] * 500,
+                            y: fixedPositions[node][1] * 500,
                             fixed: { x: true, y: true }
                         });
                     }
@@ -124,14 +108,13 @@
             var network = new vis.Network(container, data, options);
         }
     
-        var fixedPositions = generateFixedPositions(graph_before_data.concat(new_edges));
-    
         var containerBefore = document.getElementById('graph-before');
-        createGraph(containerBefore, graph_before_data, [], fixedPositions);
+    createGraph(containerBefore, graph_before_data, [], fixed_positions);
+
+    var containerAfter = document.getElementById('graph-after');
+    createGraph(containerAfter, graph_before_data, new_edges, fixed_positions);
+</script>
     
-        var containerAfter = document.getElementById('graph-after');
-        createGraph(containerAfter, graph_before_data, new_edges, fixedPositions);
-    </script>
     
     
 
