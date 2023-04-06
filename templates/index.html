@@ -65,9 +65,10 @@
                         nodes.add({
                             id: node,
                             label: String(node),
-                            x: fixedPositions[node][0] * 500,
-                            y: fixedPositions[node][1] * 500,
-                            fixed: { x: true, y: true }
+                            x: fixed_positions[node][0] * 500,
+                            y: fixed_positions[node][1] * 500,
+                            fixed: { x: true, y: true },
+                            color: node < 100 ? '#FFFF91' : '#85E0FF'
                         });
                     }
                 });
@@ -79,7 +80,8 @@
                 edges.add({
                     from: edge[0],
                     to: edge[1],
-                    color: isAfterData ? { color: 'red' } : { color: 'gray' },
+                    color: isAfterData ? { color: '#FF4D4D'} : { color: 'gray' },
+                    width: isAfterData ? 2 : 1,
                     label: isAfterData ? "is same as" : undefined,
                     font: { align: "middle" }
                 });
