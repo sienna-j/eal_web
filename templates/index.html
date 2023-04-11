@@ -31,6 +31,14 @@
             border: 1px solid lightgray;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
+        .select-view-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .select-view-container > div {
+            margin-right: 20px;
+        }
+
 
         form {
             margin-bottom: 1em;
@@ -73,7 +81,7 @@
         </div>
     </div>
     <h2 style="font-weight: bold;">Entity pair selection</h2>
-    <div id = "selectview">
+    <div class="select-view-container">
         <div>
             <form method="POST">
                 <label for="selected_entity1">Select entity1:</label>
@@ -85,13 +93,18 @@
                     {% endfor %}
                 </select>
                 <br><br>
-                <!-- Add the size attribute to display more options at once -->
+            </form>
+        </div>
+        <div>
+            <form method="POST">
+                <label for="selected_entity2">Select entity2:</label>
+                <br><br>
                 <select name="selected_entity2" id="selected_entity2" style="width: 300px;" size="10">
                     <option value="" selected disabled>Select entity2</option>
                 </select>
                 <br>
                 <button type="submit">Apply</button>
-            </form>            
+            </form>
         </div>
     </div>
 
