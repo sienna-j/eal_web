@@ -46,24 +46,21 @@ def eal():
     raw_entities_wd = load_raw_entities('static/ea_dataset/wd/entity_raw_rev.txt')
     pairs_data = load_data('static/candidate_pairs.csv')
 
-    unique_entity1 = pairs_data['entity1'].unique()
-
     if request.method == 'POST':
-        selected_entity1 = request.form.get('selected_entity1')
-        selected_entity2 = request.form.get('selected_entity2')
-        
-        if selected_entity1 and selected_entity2:
-            entity1 = int(selected_entity1)
-            entity2 = int(selected_entity2.split()[0])
-            graph_edges = np.vstack([graph_edges, [entity1, entity2]])
-            graph_before_data = extract_n_hop_edges(output_edges, graph_edges)
+        selected_entity1 = int(request.form.get('selected_entity1'))
+        selected_entity2 = int(request.form.get('selected_entity2'))
+        new_edge = (selected_entity1, selected_entity2)
+        session.setdefault('new_edges', []).append(new_edge)
+        new_edges = session['new_edges']
+        fixed_positions = session.get('fixed_positions', {})
+        return render_template("index.html", graph_before_data=graph_before_data.tolist(), output_edges=output_edges.tolist(), new_edges=new_edges, fixed_positions=fixed_positions, raw_entities_dbp=raw_entities_dbp, raw_entities_wd=raw_entities_wd, pairs_data=pairs_data.to_dict(orient='records'))
 
     G = nx.Graph()
     G.add_edges_from(graph_before_data)
     fixed_positions = {int(k): list(v) for k, v in nx.spring_layout(G, k=0.2, iterations=20).items()}
     session['fixed_positions'] = fixed_positions
 
-    return render_template("index.html", graph_before_data=graph_before_data.tolist(), output_edges=output_edges.tolist(), new_edges=[], fixed_positions=fixed_positions, raw_entities_dbp = raw_entities_dbp, raw_entities_wd = raw_entities_wd, pairs_data=pairs_data.to_dict(orient='records'), unique_entity1=unique_entity1)
+    return render_template("index.html", graph_before_data=graph_before_data.tolist(), output_edges=output_edges.tolist(), new_edges=[], fixed_positions=fixed_positions, raw_entities_dbp=raw_entities_dbp, raw_entities_wd=raw_entities_wd, pairs_data=pairs_data.to_dict(orient='records'))
 
 if __name__ == '__main__':
-    app.run(port=45201, debug=True)
+    app.run(port=45017, debug=True)

@@ -78,9 +78,9 @@
             <form method="POST">
                 <label for="selected_entity1">Select entity1:</label>
                 <br><br>
-                <select name="selected_entity1" id="selected_entity1" onchange="updateEntity2Options()" style="width: 300px;">
+                <select name="selected_entity1" id="selected_entity1" style="width: 300px;">
                     <option value="" selected disabled>Select entity1</option>
-                    {% for entity1 in unique_entity1 %}
+                    {% for entity1 in pairs_data|map(attribute='entity1')|unique %}
                         <option value="{{ entity1 }}">{{ raw_entities_dbp[entity1] }}</option>
                     {% endfor %}
                 </select>
@@ -92,7 +92,7 @@
                 </select>
                 <br>
                 <button type="submit">Apply</button>
-            </form>
+            </form>            
         </div>
     </div>
 
@@ -140,7 +140,7 @@
 
                         nodes.add({
                             id: node,
-                            label: nodelabel,
+                            label: String(node),
                             x: fixed_positions[node][0] * 500,
                             y: fixed_positions[node][1] * 500,
                             fixed: { x: true, y: true },
