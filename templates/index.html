@@ -105,6 +105,8 @@
         var raw_entities_dbp = {{ raw_entities_dbp|tojson }};
         var raw_entities_wd = {{ raw_entities_wd|tojson }};
         var pairs_data = {{ pairs_data|tojson }};
+
+        var selectedPairs = [];
         
         function createGraph(container, beforeData, afterData, fixedPositions) {
             var nodes = new vis.DataSet([]);
@@ -215,7 +217,35 @@
             }
         }
 
+        function addSelectedPair(event) {
+            event.preventDefault();
+
+            var selectedEntity1 = document.getElementById('selected_entity1').value;
+            var selectedEntity2 = document.getElementById('selected_entity2').value;
+
+            if (selectedEntity1 && selectedEntity2) {
+                var pair = pairs_data.find(function (pair) {
+                    return pair.entity1 == selectedEntity1 && pair.entity2 == selectedEntity2;
+                });
+
+                if (pair) {
+                    selectedPairs.push(pair);
+
+                    var containerAfter = document.getElementById('graph-after');
+                    createGraph(containerAfter, graph_before_data, selectedPairs.map(function (pair) {
+                        return [pair.entity1, pair.entity2];
+                    }), fixed_positions);
+
+                    // updateSelectedEdgesList(); // Uncomment this line if you want to display the selected edges in a list
+                }
+            }
+        }
+
+
         document.getElementById('selected_entity1').addEventListener('change', updateEntity2Options);
+
+        // Add an event listener for the form submit
+        document.querySelector('form').addEventListener('submit', addSelectedPair);
 
         var containerBefore = document.getElementById('graph-before');
         createGraph(containerBefore, graph_before_data, [], fixed_positions);
