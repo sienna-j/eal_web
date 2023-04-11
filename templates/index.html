@@ -76,19 +76,26 @@
     <div id = "selectview">
         <div>
             <form method="POST">
-                <label for="selected_edges">Select entity pairs to apply:</label>
+                <label for="selected_entity1">Select entity1:</label>
                 <br><br>
-                <select name="selected_edges" id="selected_edges" multiple size="10" style="width: 300px;">
-                    {% for edge in output_edges %}
-                        <option value="{{ edge|join(',') }}">{{ raw_entities_dbp[edge[0]] }} - {{ raw_entities_wd[edge[1]] }}</option>
+                <select name="selected_entity1" id="selected_entity1" onchange="updateEntity2Options()" style="width: 300px;">
+                    <option value="" selected disabled>Select entity1</option>
+                    {% for entity1 in unique_entity1 %}
+                        <option value="{{ entity1 }}">{{ raw_entities_dbp[entity1] }}</option>
                     {% endfor %}
+                </select>
+                <br><br>
+                <label for="selected_entity2">Select entity2:</label>
+                <br><br>
+                <select name="selected_entity2" id="selected_entity2" style="width: 300px;">
+                    <option value="" selected disabled>Select entity2</option>
                 </select>
                 <br>
                 <button type="submit">Apply</button>
             </form>
         </div>
-        
     </div>
+
 
     <script>
         var graph_before_data = {{ graph_before_data|tojson }};
@@ -97,6 +104,7 @@
         var fixed_positions = {{ fixed_positions|tojson }};
         var raw_entities_dbp = {{ raw_entities_dbp|tojson }};
         var raw_entities_wd = {{ raw_entities_wd|tojson }};
+        var pairs_data = {{ pairs_data|tojson }};
         
         function createGraph(container, beforeData, afterData, fixedPositions) {
             var nodes = new vis.DataSet([]);
@@ -199,6 +207,46 @@
                 edgeText.innerHTML = rawname1 + ' - ' + rawname2;
                 selectedEdgesList.appendChild(edgeText);
             });
+        }
+
+        function updateEntity2Options() {
+            var selectedEntity1 = document.getElementById('selected_entity1').value;
+            var entity2Select = document.getElementById('selected_entity2');
+            entity2Select.innerHTML = '<option value="" selected disabled>Select entity2</option>';
+            
+            if (selectedEntity1) {
+                var filteredPairs = pairs_data.filter(function(pair) {
+                    return pair.entity1 == selectedEntity1;
+                });
+
+                filteredPairs.forEach(function(pair) {
+                    var entity2Option = document.createElement('option');
+                    entity2Option.value = pair.entity2;
+                    entity2Option.textContent = raw_entities_wd[pair.entity2] + ' (' + pair.score + ')';
+                    entity2Select.appendChild(entity2Option);
+                });
+            }
+        }
+
+        document.getElementById('selected_entity1').addEventListener('change', updateEntity2Options);
+
+        function updateEntity2Options() {
+            var selectedEntity1 = document.getElementById('selected_entity1').value;
+            var entity2Select = document.getElementById('selected_entity2');
+            entity2Select.innerHTML = '<option value="" selected disabled>Select entity2</option>';
+            
+            if (selectedEntity1) {
+                var filteredPairs = pairs_data.filter(function(pair) {
+                    return pair.entity1 == selectedEntity1;
+                });
+
+                filteredPairs.forEach(function(pair) {
+                    var entity2Option = document.createElement('option');
+                    entity2Option.value = pair.entity2;
+                    entity2Option.textContent = raw_entities_wd[pair.entity2] + ' (' + pair.score + ')';
+                    entity2Select.appendChild(entity2Option);
+                });
+            }
         }
 
         var containerBefore = document.getElementById('graph-before');
