@@ -49,6 +49,7 @@ def eal():
     if request.method == 'POST':
         selected_entity1 = int(request.form.get('selected_entity1'))
         selected_entity2 = int(request.form.get('selected_entity2'))
+        print(selected_entity1,selected_entity2)
         new_edge = (selected_entity1, selected_entity2)
         session.setdefault('new_edges', []).append(new_edge)
         new_edges = session['new_edges']
@@ -63,4 +64,4 @@ def eal():
     return render_template("index.html", graph_before_data=graph_before_data.tolist(), output_edges=output_edges.tolist(), new_edges=[], fixed_positions=fixed_positions, raw_entities_dbp=raw_entities_dbp, raw_entities_wd=raw_entities_wd, pairs_data=pairs_data.to_dict(orient='records'))
 
 if __name__ == '__main__':
-    app.run(port=45031, debug=True)
+    app.run(port=45045, debug=True)

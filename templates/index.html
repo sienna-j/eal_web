@@ -31,14 +31,6 @@
             border: 1px solid lightgray;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        .select-view-container {
-            display: flex;
-            justify-content: space-between;
-        }
-        .select-view-container > div {
-            margin-right: 20px;
-        }
-
 
         form {
             margin-bottom: 1em;
@@ -75,39 +67,34 @@
     <h1>Entity Alignment - Before and After</h1>
 
     <div id="content">
+
+        <div id = "selectview">
+            <div>
+                <form method="POST">
+                    <label for="selected_entity1">Select Candidate Pairs:</label>
+                    <br><br>
+                    <select name="selected_entity1" id="selected_entity1" style="width: 300px;" size="10">
+                        <option value="" selected disabled>Select entity1</option>
+                        {% for entity1 in pairs_data|map(attribute='entity1')|unique %}
+                            <option value="{{ entity1 }}">{{ raw_entities_dbp[entity1] }}</option>
+                        {% endfor %}
+                    </select>
+                    <br><br>
+                    <!-- Add the size attribute to display more options at once -->
+                    <select name="selected_entity2" id="selected_entity2" style="width: 300px;" size="10">
+                        <option value="" selected disabled>Select entity2</option>
+                    </select>
+                    <br>
+                    <button type="submit">Apply</button>
+                </form>            
+            </div>
+        </div>
+
         <div id="visualization-container">
             <div id="graph-before" class="graph-container"></div>
             <div id="graph-after" class="graph-container"></div>
         </div>
     </div>
-    <h2 style="font-weight: bold;">Entity pair selection</h2>
-    <div class="select-view-container">
-        <div>
-            <form method="POST">
-                <label for="selected_entity1">Select entity1:</label>
-                <br><br>
-                <select name="selected_entity1" id="selected_entity1" style="width: 300px;" size="10">
-                    <option value="" selected disabled>Select entity1</option>
-                    {% for entity1 in pairs_data|map(attribute='entity1')|unique %}
-                        <option value="{{ entity1 }}">{{ raw_entities_dbp[entity1] }}</option>
-                    {% endfor %}
-                </select>
-                <br><br>
-            </form>
-        </div>
-        <div>
-            <form method="POST">
-                <label for="selected_entity2">Select entity2:</label>
-                <br><br>
-                <select name="selected_entity2" id="selected_entity2" style="width: 300px;" size="10">
-                    <option value="" selected disabled>Select entity2</option>
-                </select>
-                <br>
-                <button type="submit">Apply</button>
-            </form>
-        </div>
-    </div>
-
 
     <script>
         var graph_before_data = {{ graph_before_data|tojson }};
