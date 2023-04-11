@@ -195,19 +195,6 @@
     
             var network = new vis.Network(container, data, options);
         }
-    
-        function updateSelectedEdgesList(new_edges, raw_entities_dbp, raw_entities_wd) {
-            var selectedEdgesList = document.getElementById('selected-edges-list');
-            selectedEdgesList.innerHTML = '';
-
-            new_edges.forEach(function(edge) {
-                var edgeText = document.createElement('p');
-                var rawname1 = raw_entities_dbp[edge[0]];
-                var rawname2 = raw_entities_wd[edge[1]];
-                edgeText.innerHTML = rawname1 + ' - ' + rawname2;
-                selectedEdgesList.appendChild(edgeText);
-            });
-        }
 
         function updateEntity2Options() {
             var selectedEntity1 = document.getElementById('selected_entity1').value;
@@ -230,32 +217,12 @@
 
         document.getElementById('selected_entity1').addEventListener('change', updateEntity2Options);
 
-        function updateEntity2Options() {
-            var selectedEntity1 = document.getElementById('selected_entity1').value;
-            var entity2Select = document.getElementById('selected_entity2');
-            entity2Select.innerHTML = '<option value="" selected disabled>Select entity2</option>';
-            
-            if (selectedEntity1) {
-                var filteredPairs = pairs_data.filter(function(pair) {
-                    return pair.entity1 == selectedEntity1;
-                });
-
-                filteredPairs.forEach(function(pair) {
-                    var entity2Option = document.createElement('option');
-                    entity2Option.value = pair.entity2;
-                    entity2Option.textContent = raw_entities_wd[pair.entity2] + ' (' + pair.score + ')';
-                    entity2Select.appendChild(entity2Option);
-                });
-            }
-        }
-
         var containerBefore = document.getElementById('graph-before');
         createGraph(containerBefore, graph_before_data, [], fixed_positions);
 
         var containerAfter = document.getElementById('graph-after');
         createGraph(containerAfter, graph_before_data, new_edges, fixed_positions);
         
-        updateSelectedEdgesList(new_edges, raw_entities_dbp, raw_entities_wd);
     </script>
 </body>
 </html>

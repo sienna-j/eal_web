@@ -63,4 +63,4 @@ def eal():
     return render_template("index.html", graph_before_data=graph_before_data.tolist(), output_edges=output_edges.tolist(), new_edges=[], fixed_positions=fixed_positions, raw_entities_dbp=raw_entities_dbp, raw_entities_wd=raw_entities_wd, pairs_data=pairs_data.to_dict(orient='records'))
 
 if __name__ == '__main__':
-    app.run(port=45017, debug=True)
+    app.run(port=45031, debug=True)
