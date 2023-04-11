@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entity Alignment Visualization</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap";; rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>;
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css"; rel="stylesheet" type="text/css">
     <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
         #content {
             display: flex;
             justify-content: space-between;
@@ -20,7 +29,37 @@
             width: 45%;
             height: 500px;
             border: 1px solid lightgray;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
+
+        form {
+            margin-bottom: 1em;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 1em;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            padding: 0.5em 0;
+        }
+
     </style>
 </head>
 <body>
@@ -28,23 +67,27 @@
     <h1>Entity Alignment - Before and After</h1>
 
     <div id="content">
+        <div id="visualization-container">
+            <div id="graph-before" class="graph-container"></div>
+            <div id="graph-after" class="graph-container"></div>
+        </div>
+    </div>
+    <h2 style="font-weight: bold;">Entity pair selection</h2>
+    <div id = "selectview">
         <div>
             <form method="POST">
-                <label for="selected_edges">Select edges to apply:</label>
-                <br>
+                <label for="selected_edges">Select entity pairs to apply:</label>
+                <br><br>
                 <select name="selected_edges" id="selected_edges" multiple size="10" style="width: 300px;">
                     {% for edge in output_edges %}
-                        <option value="{{ edge|join(',') }}">{{ edge|join(' - ') }}</option>
+                        <option value="{{ edge|join(',') }}">{{ raw_entities_dbp[edge[0]] }} - {{ raw_entities_wd[edge[1]] }}</option>
                     {% endfor %}
                 </select>
                 <br>
                 <button type="submit">Apply</button>
             </form>
         </div>
-        <div id="visualization-container">
-            <div id="graph-before" class="graph-container"></div>
-            <div id="graph-after" class="graph-container"></div>
-        </div>
+        
     </div>
 
     <script>
@@ -52,7 +95,9 @@
         var output_edges = {{ output_edges|tojson }};
         var new_edges = {{ new_edges|tojson }};
         var fixed_positions = {{ fixed_positions|tojson }};
-    
+        var raw_entities_dbp = {{ raw_entities_dbp|tojson }};
+        var raw_entities_wd = {{ raw_entities_wd|tojson }};
+        
         function createGraph(container, beforeData, afterData, fixedPositions) {
             var nodes = new vis.DataSet([]);
             var edges = new vis.DataSet([]);
@@ -62,13 +107,36 @@
             allData.forEach(function (edge) {
                 [edge[0], edge[1]].forEach(function (node) {
                     if (!nodes.get(node)) {
+
+                        if (node < 140000){
+                            if (node < 70000){
+                                nodelabel = raw_entities_dbp[node];
+                                nodecolor = '#FFFF91';
+                            }
+                            else{
+                                nodelabel = raw_entities_wd[node];
+                                nodecolor = '#85E0FF';
+                            }
+                        }
+                        else{
+                            if (node < 170000){
+                                nodelabel = raw_entities_dbp[node];
+                                nodecolor = '#FFFF91';
+                            }
+                            else{
+                                nodelabel = raw_entities_wd[node];
+                                nodecolor = '#85E0FF';
+                            }
+                        }
+                        console.log("nodelabel: ",nodelabel);
+
                         nodes.add({
                             id: node,
-                            label: String(node),
+                            label: nodelabel,
                             x: fixed_positions[node][0] * 500,
                             y: fixed_positions[node][1] * 500,
                             fixed: { x: true, y: true },
-                            color: node < 100 ? '#FFFF91' : '#85E0FF'
+                            color: nodecolor 
                         });
                     }
                 });
@@ -82,7 +150,7 @@
                     to: edge[1],
                     color: isAfterData ? { color: '#FF4D4D'} : { color: 'gray' },
                     width: isAfterData ? 2 : 1,
-                    label: isAfterData ? "is same as" : undefined,
+                    label: isAfterData ? "sameAs" : undefined,
                     font: { align: "middle" }
                 });
             });
@@ -99,7 +167,8 @@
                     font: {
                         size: 16,
                         bold: true
-                    }
+                    },
+                    widthConstraint: 50
                 },
                 edges: {
                     width: 1
@@ -109,18 +178,36 @@
                 },
                 interaction: {
                     hover: true,
-                    zoomView: true
+                    zoomView: true,
+                    navigatorButtons: true,
+                    keyboard: true,
+                    scale: 0.5
                 }
             };
     
             var network = new vis.Network(container, data, options);
         }
     
+        function updateSelectedEdgesList(new_edges, raw_entities_dbp, raw_entities_wd) {
+            var selectedEdgesList = document.getElementById('selected-edges-list');
+            selectedEdgesList.innerHTML = '';
+
+            new_edges.forEach(function(edge) {
+                var edgeText = document.createElement('p');
+                var rawname1 = raw_entities_dbp[edge[0]];
+                var rawname2 = raw_entities_wd[edge[1]];
+                edgeText.innerHTML = rawname1 + ' - ' + rawname2;
+                selectedEdgesList.appendChild(edgeText);
+            });
+        }
+
         var containerBefore = document.getElementById('graph-before');
         createGraph(containerBefore, graph_before_data, [], fixed_positions);
 
         var containerAfter = document.getElementById('graph-after');
         createGraph(containerAfter, graph_before_data, new_edges, fixed_positions);
+        
+        updateSelectedEdgesList(new_edges, raw_entities_dbp, raw_entities_wd);
     </script>
 </body>
 </html>
